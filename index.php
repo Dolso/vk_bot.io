@@ -182,7 +182,10 @@ switch ($data->type) {
            	 $nomer['nomer'] = 0;
            	 writems($chat_id, "Добро пожаловать на наш тест :) ".$namename, 0 );
            	 writems($chat_id, "Вам предстоит ответить на ".count($protv). " вопросов", 0 );
+           	 writems($chat_id, "Напишите 'go' чтобы начать", 0);
            	 writems($chat_id, $nazvanie, 0 ); //пишем название теста
+           	 echo 'ok';          
+             break;  
         }
 
         //присваеваем значения была ли нажата та кнопка

@@ -4,7 +4,11 @@
 $confirmation_token = 'CONF_TOKEN';
 // токен
 $token = "TOKEN"; 
-
+//заполняем данные для подключения бд
+$host = 'host';
+$dbname = 'dbname';
+$login = 'login';
+$password = 'password';
 //Название теста
 $nazvanie = "Узнай на сколько ты знаешь вселенную звездных войн";
 //Правильные ответы
@@ -27,8 +31,11 @@ $vopros = array ("Как звали сына наемника, отца кото
 //функция для запроса INSERT
 function insert($id,$meadal,$nomer,$pravilotv,$name,$popitki,$active){
 	try {  
-		//вводим данные db
-	    $DBH = new PDO("mysql:host=localhost;dbname=db;charset=UTF8", "login", 'password');  
+		global $host;
+        global $dbname;
+        global $login;
+        global $password;
+	    $DBH = new PDO("mysql:host=".$host.";dbname=".$dbname.";charset=UTF8", $login, $password);  
 	    $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );  
 	  
 	   
@@ -44,8 +51,11 @@ function insert($id,$meadal,$nomer,$pravilotv,$name,$popitki,$active){
 //функция для запроса UPDATE, если $d true то нужно прибавить к параметру 1
 function update($parametr,$znach,$chat_id,$d){
 	try {  
-		//вводим данные db
-	    $DBH = new PDO("mysql:host=localhost;dbname=db;charset=UTF8", "login", 'password');  
+		global $host;
+        global $dbname;
+        global $login;
+        global $password;
+	    $DBH = new PDO("mysql:host=".$host.";dbname=".$dbname.";charset=UTF8", $login, $password);  
 	    $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );  
 
 	    if($d == true){ 
@@ -71,9 +81,12 @@ function update($parametr,$znach,$chat_id,$d){
 }
 //функция для запроса SELECT
 function select($parametr, $chat_id){
-	try {  
-		//вводим данные db
-	    $DBH = new PDO("mysql:host=localhost;dbname=db;charset=UTF8", "login", 'password');  
+	try {
+	    global $host;
+        global $dbname;
+        global $login;
+        global $password;  
+	    $DBH = new PDO("mysql:host=".$host.";dbname=".$dbname.";charset=UTF8", $login, $password); 
 	    $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );  
 
 	    $stmt = $DBH-> query("SELECT ".$parametr." FROM tik WHERE id =".$chat_id);
@@ -200,7 +213,7 @@ switch ($data->type) {
             	//$pravilotv = mysqli_fetch_array(mysqli_query($db, "SELECT pravilotv FROM tik WHERE id = '".$chat_id."' "));
             	$pravilotv = select('pravilotv', $chat_id);
                 writems($chat_id, "Вы ответили на ".$pravilotv['pravilotv']." из ".count($protv)." вопросов ", 0);
-                update('rank', 'бывалый', $chat_id, false);
+                update('rank', 'Бывалый', $chat_id, false);
                 //присваеваем значение активности клавиатуры нулю
                 update('active', 0, $chat_id, false);
                 //присвоение рангов и вывод комментария

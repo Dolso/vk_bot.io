@@ -2,18 +2,37 @@
 
 class PDOdb
 {
+    protected static $_instance;
 
     public $host;
     public $dbname;
     public $login;
     public $password;
 
-    function __construct($host, $dbname, $login, $password)
+    private function __construct($host, $dbname, $login, $password)
     {
         $this->host = $host;
         $this->dbname = $dbname;
         $this->login = $login;
         $this->password = $password;
+    }
+
+    public static function getInstance($host, $dbname, $login, $password)
+    {
+        if (self::$_instance === null) {
+            self::$_instance = new self($host, $dbname, $login, $password);
+        }
+        return self::$_instance;
+    }
+
+    private function __clone()
+    {
+
+    }
+
+    private function __wakeup()
+    {
+
     }
 
     function insert($id, $meadal, $nomer, $pravilotv, $name, $popitki, $active)

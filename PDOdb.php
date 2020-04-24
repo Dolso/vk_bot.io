@@ -38,12 +38,12 @@ class PDOdb
     function insert($id, $meadal, $nomer, $pravilotv, $name, $popitki, $active)
     {
         try {
-            global $host;
-            global $dbname;
-            global $login;
-            global $password;
+            //global $host;
+            //global $dbname;
+            //global $login;
+            //global $password;
 
-            $DBH = new PDO("mysql:host=".$host.";dbname=".$dbname.";charset=UTF8", $login, $password);
+            $DBH = new PDO("mysql:host=".$this->host.";dbname=".$this->dbname.";charset=UTF8", $this->login, $this->password);
             $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
             $data = array($id,$meadal,$nomer,$pravilotv,$name,$popitki,$active);
             $STH = $DBH -> prepare("INSERT INTO tik (id, rank, nomer, pravilotv, name, popitki, active) VALUES (?, ?, ?, ?, ?, ?, ?)");

@@ -3,7 +3,7 @@
 require_once 'PDOdb.php';;
 
 //подтверждающий код
-$confirmation_token = 'cond_token';
+$confirmation_token = 'conf_token';
 // токен
 $token = "token";
 //заполняем данные для подключения бд
@@ -12,7 +12,7 @@ $dbname = 'dbname';
 $login = 'login';
 $password = 'password';
 
-$dbconn = new PDOdb($host, $dbname, $login, $password);
+$dbconn = PDOdb::getInstance($host, $dbname, $login, $password);
 
 //Название теста
 $nazvanie = "Узнай на сколько ты знаешь вселенную звездных войн";
@@ -38,7 +38,6 @@ $vopros = array ("Как звали сына наемника, отца кото
 function writems($peer_id,$text, $keyboard)
 {
     global $token;
-
     $request_params = array(
         'message' => $text,
         'keyboard' => json_encode($keyboard, JSON_UNESCAPED_UNICODE),
@@ -95,7 +94,8 @@ switch ($data->type) {
         break;
 
     case 'message_new':     //если получили события message
-
+        header('HTTP/1.1 200 OK');
+        echo('ok');
         $message_text = $data->object->text;
         $chat_id = $data->object->peer_id;
         $payload = $data->object->payload;
@@ -111,13 +111,13 @@ switch ($data->type) {
         $result = $dbconn->select('nomer', $chat_id);
         if ($result == 0) {
             //SQL запрос
+
             $dbconn->insert($chat_id, 'Новичок', 0, 0, $namename, 0, 0);
             $nomer['nomer'] = 0;
             writems($chat_id, "Добро пожаловать на наш тест :) ".$namename, 0 );
             writems($chat_id, "Вам предстоит ответить на ".count($protv). " вопросов", 0 );
             writems($chat_id, "Напишите 'go' чтобы начать", 0);
             writems($chat_id, $nazvanie, 0 ); //пишем название теста
-            echo 'ok';
             break;
         }
 
@@ -150,8 +150,6 @@ switch ($data->type) {
                 $dbconn->update('active', 0, $chat_id, false);
                 //присвоение рангов и вывод комментария
                 rang($pravilotv['pravilotv']);
-
-                echo 'ok';
                 break;
             }
 
@@ -168,7 +166,7 @@ switch ($data->type) {
             $dbconn->update('active', 1, $chat_id, false);
             $nomer['nomer'] = 0;
         }
-
+        
         //выесняем какая активность у клавиатуры
         $active = $dbconn->select('active', $chat_id);
         //если была нажата кнопка или пользователь написал начать тест или активность клавиатуры = 1 то показываем клавиатуру
@@ -239,7 +237,7 @@ switch ($data->type) {
         }
 
         //посылаем ок
-        echo 'ok';
+        //echo 'ok';
         break;
 }
 

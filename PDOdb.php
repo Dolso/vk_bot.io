@@ -38,11 +38,7 @@ class PDOdb
     function insert($id, $meadal, $nomer, $pravilotv, $name, $popitki, $active)
     {
         try {
-            //global $host;
-            //global $dbname;
-            //global $login;
-            //global $password;
-
+            
             $DBH = new PDO("mysql:host=".$this->host.";dbname=".$this->dbname.";charset=UTF8", $this->login, $this->password);
             $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
             $data = array($id,$meadal,$nomer,$pravilotv,$name,$popitki,$active);
@@ -58,12 +54,8 @@ class PDOdb
     function update($parametr, $znach, $chat_id, $d)
     {
         try {
-            global $host;
-            global $dbname;
-            global $login;
-            global $password;
-
-            $DBH = new PDO("mysql:host=".$host.";dbname=".$dbname.";charset=UTF8", $login, $password);
+        	
+            $DBH = new PDO("mysql:host=".$this->host.";dbname=".$this->dbname.";charset=UTF8", $this->login, $this->password);
             $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 
             if ($d == true) {
@@ -90,12 +82,8 @@ class PDOdb
     function select($parametr, $chat_id)
     {
         try {
-            global $host;
-            global $dbname;
-            global $login;
-            global $password;
 
-            $DBH = new PDO("mysql:host=".$host.";dbname=".$dbname.";charset=UTF8", $login, $password);
+            $DBH = new PDO("mysql:host=".$this->host.";dbname=".$this->dbname.";charset=UTF8", $this->login, $this->password);
             $DBH->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
             $stmt = $DBH->query("SELECT ".$parametr." FROM tik WHERE id =".$chat_id);
             $stmt->setFetchMode(PDO::FETCH_ASSOC);

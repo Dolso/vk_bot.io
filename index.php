@@ -1,24 +1,21 @@
 <?php
 
-require_once 'PDOdb.php';;
+require_once 'PDOdb.php';
 
-//подтверждающий код
-$confirmation_token = 'conf_token';
-// токен
-$token = "token";
-//заполняем данные для подключения бд
-$host = 'localhost';
-$dbname = 'dbname';
-$login = 'login';
-$password = 'password';
+require_once 'config.php';
 
-$dbconn = PDOdb::getInstance($host, $dbname, $login, $password);
 
-//Название теста
+//connect to db
+$dbconn = PDOdb::getInstance(DB_HOST, DB_NAME, DB_ACCAUNT_LOGIN, DB_ACCAUNT_PASSWORD);
+
+//Test name
 $nazvanie = "Узнай на сколько ты знаешь вселенную звездных войн";
-//Правильные ответы
+
+//Rights answers
 $protv = array(1, 3, 3, 1, 3);
-//Варианты ответов. В каждом вопросе должно быть четыре варианта ответа
+
+//Answer options
+//Each question should have 4 possible answers
 $varint = array(
     array("Боба Фет", "Джанго Фет", "Винду" ,"Дуку" ),
     array("Он узнал кто его отец", "Скайуокер поднял R2D2", "По анализу крови", "Его мама сказала"),
@@ -26,27 +23,30 @@ $varint = array(
     array("Акбар", "Пенфин", "Долсо", "Шин"),
     array("Хот", "Корусант", "Камино", "Джеонозис")
 );
-//Вопросы
-$vopros = array ("Как звали сына наемника, отца которого убили на Джеонозис?",
+
+
+//Answers
+$vopros = array(
+    "Как звали сына наемника, отца которого убили на Джеонозис?",
     "Как Квайгон Джин подтвердил свою догадку, что Скайуокер обладает силой",
     "Во втором эпизоде Энакен говорил Падме что не любит X, что за этот X?",
     "Как звали одного из генералов который впервые появился в шестом эпизоде, проговоривший мемную фразу",
     "На какой планете было велось большое производство клонов во втором эпизоде?"
 );
 
-//Функция отвечающая за ответ vk
+//response for vk
 function writems($peer_id,$text, $keyboard)
 {
-    global $token;
     $request_params = array(
         'message' => $text,
         'keyboard' => json_encode($keyboard, JSON_UNESCAPED_UNICODE),
         'peer_id' => $peer_id,
-        'access_token' => $token,
+        'access_token' => TOKEN,
         'v' => '5.87');
     $get_params = http_build_query($request_params);
     file_get_contents('https://api.vk.com/method/messages.send?' . $get_params);
 }
+
 //help
 function helpme()
 {
@@ -58,7 +58,7 @@ function helpme()
     writems($chat_id, "Хорошей игры :)", 0);
 }
 
-//Выставление рангов на тест из 5 вопросов
+//rangs
 function rang($pravilotv)
 {
     global $chat_id;
@@ -86,14 +86,29 @@ function rang($pravilotv)
     }
 }
 
-//превращаем в массив json
+function firstBotUse($chat_id, $namename, $protv)
+{
+    global $dbconn;
+
+    $dbconn->insert($chat_id, 'Новичок', 0, 0, $namename, 0, 0);
+    $nomer['nomer'] = 0;
+    writems($chat_id, "Добро пожаловать на наш тест :) ".$namename, 0 );
+    writems($chat_id, "Вам предстоит ответить на ".count($protv). " вопросов", 0 );
+    writems($chat_id, "Напишите 'go' чтобы начать", 0);
+    writems($chat_id, $nazvanie, 0 ); //пишем название теста
+}
+
+//point of entry  ==========================================================================
 $data = json_decode(file_get_contents('php://input'));
 switch ($data->type) {
-    case 'confirmation':    //если получили событие отвечающее за проверку
-        echo $confirmation_token;
+
+    case 'confirmation':    //get event for confirmation
+        echo CONFIRMATION_TOKEN;
         break;
 
-    case 'message_new':     //если получили события message
+
+    case 'message_new':     //get event message
+
         header('HTTP/1.1 200 OK');
         echo('ok');
         $message_text = $data->object->text;
@@ -101,23 +116,18 @@ switch ($data->type) {
         $payload = $data->object->payload;
         $userId = $data->object->from_id;
 
-        //берем информацию о пользователе
-        $userInfo = json_decode(file_get_contents("https://api.vk.com/method/users.get?user_ids={$userId}&v=5.87&access_token=".$token));
+        //get infroration about user
+        $userInfo = json_decode(file_get_contents("https://api.vk.com/method/users.get?user_ids={$userId}&v=5.87&access_token=".TOKEN));
 
         //берем Имя со взятых данных
         $namename = $userInfo->response[0]->first_name;
 
         //проверяем существование пользователя в бд, если нет то заполняем его
         $result = $dbconn->select('nomer', $chat_id);
+        
+        //first bot use
         if ($result == 0) {
-            //SQL запрос
-
-            $dbconn->insert($chat_id, 'Новичок', 0, 0, $namename, 0, 0);
-            $nomer['nomer'] = 0;
-            writems($chat_id, "Добро пожаловать на наш тест :) ".$namename, 0 );
-            writems($chat_id, "Вам предстоит ответить на ".count($protv). " вопросов", 0 );
-            writems($chat_id, "Напишите 'go' чтобы начать", 0);
-            writems($chat_id, $nazvanie, 0 ); //пишем название теста
+            firstBotUse($chat_id, $namename, $protv);
             break;
         }
 
@@ -129,6 +139,7 @@ switch ($data->type) {
 
         //смотрим на каком номере вопроса находится пользователь
         $nomer = $dbconn->select('nomer', $chat_id);
+        
         //проверяем нажатие кнопки
         if ($bone OR $btwo OR $bthree OR $bfour) {
 
@@ -169,6 +180,7 @@ switch ($data->type) {
         
         //выесняем какая активность у клавиатуры
         $active = $dbconn->select('active', $chat_id);
+
         //если была нажата кнопка или пользователь написал начать тест или активность клавиатуры = 1 то показываем клавиатуру
         if (mb_strtolower($message_text) == "go" || $bone || $btwo || $bthree || $bfour || $active['active'] == 1) {
 
